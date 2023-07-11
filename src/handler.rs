@@ -357,7 +357,7 @@ struct Outputter<'a> {
     last_update_duration: std::time::Duration,
 }
 impl<'a> Outputter<'a> {
-    const MESSAGE_CHUNK_SIZE: usize = 1500;
+    const MESSAGE_CHUNK_SIZE: usize = 4000;
 
     async fn new(
         http: &'a Http,
@@ -370,14 +370,16 @@ impl<'a> Outputter<'a> {
                 .kind(InteractionResponseType::ChannelMessageWithSource)
                 .interaction_response_data(|message| {
                     message
-                        .content(format!(
-                            "~~{}~~",
-                            if prompts.show_prompt_template {
-                                &prompts.processed
-                            } else {
-                                &prompts.user
-                            }
-                        ))
+                        .embed(|e| {
+                          e.title("🗿")
+                            .description(format!(
+                              "~~{}~~",
+                              if prompts.show_prompt_template {
+                                  &prompts.processed
+                              } else {
+                                  &prompts.user
+                              }))
+                            .color(0x111111)})
                         .allowed_mentions(|m| m.empty_roles().empty_users().empty_parse())
                 })
         })
@@ -466,7 +468,10 @@ impl<'a> Outputter<'a> {
     async fn sync_messages_with_chunks(&mut self) -> anyhow::Result<()> {
         // Update the last message with its latest state, then insert the remaining chunks in one go
         if let Some((msg, chunk)) = self.messages.iter_mut().zip(self.chunks.iter()).last() {
-            msg.edit(self.http, |m| m.content(chunk)).await?;
+            msg.edit(self.http, |m| m.embed(|e| {
+              e.title("🗿")
+                .description(chunk)
+                .color(0x111111)})).await?;
         }
 
         if self.chunks.len() <= self.messages.len() {
@@ -484,6 +489,7 @@ impl<'a> Outputter<'a> {
         for chunk in self.chunks[self.messages.len()..].iter() {
             let last = self.messages.last_mut().unwrap();
             let msg = last.reply(self.http, chunk).await?;
+            
             self.messages.push(msg);
         }
 
