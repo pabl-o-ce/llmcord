@@ -357,7 +357,7 @@ struct Outputter<'a> {
     last_update_duration: std::time::Duration,
 }
 impl<'a> Outputter<'a> {
-    const MESSAGE_CHUNK_SIZE: usize = 4000;
+    const MESSAGE_CHUNK_SIZE: usize = 4096;
 
     async fn new(
         http: &'a Http,
@@ -488,8 +488,13 @@ impl<'a> Outputter<'a> {
         let Some(first_id) = self.messages.first().map(|m| m.id) else { return Ok(()); };
         for chunk in self.chunks[self.messages.len()..].iter() {
             let last = self.messages.last_mut().unwrap();
-            let msg = last.reply(self.http, chunk).await?;
-            
+            let msg = last.channel_id.send_message(self.http, |m| {
+              m.embed(|e| {
+                  e.description(chunk)
+                      .color(0x111111);
+                  e
+              })
+            }).await?;
             self.messages.push(msg);
         }
 
