@@ -23,9 +23,9 @@ COPY ./config.toml ./config.toml
 COPY ./src ./src
 
 # build for release
-RUN rm ./target/release/deps/llmcord*
-RUN cargo build --release --bin llmcord
-RUN strip target/release/llmcord
+RUN rm ./target/release/deps/llmcord* \
+  && cargo build --release --bin llmcord \
+  && strip target/release/llmcord
 
 ########### Start final stage ###########
 
@@ -40,8 +40,6 @@ WORKDIR /usr/src/llmcord
 # copy the build artifact from the build stage
 COPY --from=build /llmcord/config.toml .
 COPY --from=build /llmcord/target/release/llmcord .
-
-RUN chmod +x ./llmcord
 
 # Run the application
 CMD ["./llmcord"]
