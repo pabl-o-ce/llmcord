@@ -7,5 +7,7 @@ services:
     image: llmcord
     container_name: llmcord
     restart: unless-stopped
+    env_file:
+      - .env
     volumes:
       - ${MY_WEIGHTS}:/usr/src/llmcord/weights
