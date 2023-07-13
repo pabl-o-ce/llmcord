@@ -29,7 +29,7 @@ RUN strip target/release/llmcord
 
 ########### Start final stage ###########
 
-# Use the official rust image as the final base image
+# Use the official alpine image as the final base image
 FROM alpine:3.17
 
 # if needed, install additional dependencies here
